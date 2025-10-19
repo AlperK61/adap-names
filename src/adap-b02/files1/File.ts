@@ -6,44 +6,69 @@ export class File {
 
     public isOpen(): boolean {
       return this._open;
-      throw new Error("incomplete example code");
+      //throw new Error("incomplete example code");
     }
   
     public isClosed(): boolean {
-        throw new Error("incomplete example code");
+      return !this._open;
+        //throw new Error("incomplete example code");
     }
   
     public open(): void {
       this.assertIsClosedFile();
-      throw new Error("incomplete example code");
+      if(this._deleted) {
+        throw new Error("Cannot open a deleted file.");
+      }
+      this._open = true;
+      //throw new Error("incomplete example code");
     }
 
     public read(): Object[] {
-      this.assertIsOpenFile();
-      throw new Error("incomplete example code");
+      this.assertIs_openFile();
+      return this._data.slice();;
+      //throw new Error("incomplete example code");
     }
 
     public write(data: Object[]): void {
-      this.assertIsOpenFile();
-      throw new Error("incomplete example code");
+      this.assertIs_openFile();
+      this._data = Array.isArray(data) ? data.slice() : [];
+      //throw new Error("incomplete example code");
     }
   
     public close(): void {
-      this.assertIsOpenFile();
-      throw new Error("incomplete example code");
+      this.assertIs_openFile();
+      this._open = false;
+      //throw new Error("incomplete example code");
     }
 
     public delete(): void {
       this.assertIsClosedFile();
-      throw new Error("incomplete example code");
+      if (this._deleted) {
+        throw new Error("File is already deleted.");
+      }
+      this._deleted = true;
+      this._data = [];
+      //throw new Error("incomplete example code");
     }
 
-    protected assertIsOpenFile(): void {
-        throw new Error("incomplete example code");
+    protected assertIs_openFile(): void {
+      if (this._open) {
+        throw new Error("File is not _open.");
+      }
+      if (this._deleted) {
+        throw new Error("File is deleted.");
+      }
+      // throw new Error("incomplete example code");
     }
 
     protected assertIsClosedFile(): void {
-        throw new Error("incomplete example code");
+      if (!this._open) {
+        throw new Error("File is not closed.");
+      }
+      if (this._deleted) {
+        throw new Error("File is deleted.");
+      }
+        //throw new Error("incomplete example code");
     }
 
 }

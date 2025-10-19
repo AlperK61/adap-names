@@ -20,7 +20,7 @@ export class ObjFile implements File {
   
     public isClosed(): boolean {
       return !this._open;
-        throw new Error("incomplete example code");
+        //throw new Error("incomplete example code");
     }
   
     public open(): void {
@@ -39,10 +39,8 @@ export class ObjFile implements File {
     }
 
     public write(data: Object[]): void {
-      this.assertIsOpenFile();
-      const safe = Array.isArray(data) ? data.slice() : [];
-      this.data = safe;
-      this.length = this.data.length;
+    this.assertIsOpenFile();
+    this.data = Array.isArray(data) ? data.slice() : [];
       //throw new Error("incomplete example code");
     }
   

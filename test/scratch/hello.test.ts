@@ -5,6 +5,7 @@ describe("Scratch / Smoke Test", () => {
     let x = Math.hypot(10,10);
     console.log("testoooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo");
     console.log(x);
+    console.log(x)
     expect(true).toBe(true); // damit der Test 'grün' wird
   });
 });
