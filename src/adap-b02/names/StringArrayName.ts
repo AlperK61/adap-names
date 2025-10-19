@@ -7,10 +7,17 @@ export class StringArrayName implements Name {
     protected components: string[] = [];
 
     constructor(source: string[], delimiter?: string) {
-        throw new Error("needs implementation or deletion");
+        if (delimiter) {
+            this.delimiter = delimiter;
+        }
+        this.components = source;
     }
 
+     //   throw new Error("needs implementation or deletion");
+    //}
+
     public asString(delimiter: string = this.delimiter): string {
+        
         throw new Error("needs implementation or deletion");
     }
 

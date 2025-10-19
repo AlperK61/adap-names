@@ -1,6 +1,11 @@
 export class File {
+  private _open: boolean = false;
+  private _deleted: boolean = false;
+  private _data: Object[] = [];
+
 
     public isOpen(): boolean {
+      return this._open;
       throw new Error("incomplete example code");
     }
   

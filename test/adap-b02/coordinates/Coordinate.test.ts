@@ -73,4 +73,5 @@ describe('Great circle distance computation tests', () => {
 
 function round(v: number): number {
   return Math.round(10000 * v) / 10000;
+  console.log("test");
 }

@@ -8,6 +8,15 @@ export class StringName implements Name {
     protected noComponents: number = 0;
 
     constructor(source: string, delimiter?: string) {
+        this.delimiter = delimiter ? delimiter : DEFAULT_DELIMITER;
+        if(this.delimiter.length !== 1) {  
+            throw new Error("Delimiter must be a single character.");
+        }
+
+        this.name = source ?? "";
+        this.noComponents = this.name.length === 0 ? 0 : this.name.split(this.delimiter).length;
+
+
         throw new Error("needs implementation or deletion");
     }
 
