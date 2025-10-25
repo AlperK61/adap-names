@@ -1,53 +1,29 @@
 export const DEFAULT_DELIMITER: string = ".";
 export const ESCAPE_CHARACTER = "\\";
 
-/**
- * A name is a sequence of string components separated by a delimiter character.
- * Special characters within the string may need masking, if they are to appear verbatim.
- * There are only two special characters, the delimiter character and the escape character.
- * The escape character can't be set, the delimiter character can.
- *
- * Homogenous name examples
- *
- * "oss.cs.fau.de" is a name with four name components and the delimiter character '.'.
- * "///" is a name with four empty components and the delimiter character '/'.
- * "Oh\.\.\." is a name with one component, if the delimiter character is '.'.
- */
+
 export class Name {
   private delimiter: string = DEFAULT_DELIMITER;
   private components: string[] = [];
 
-  /** Expects that all Name components are properly masked */
   constructor(other: string[], delimiter?: string) {
     if (!Array.isArray(other)) {
       throw new Error("components must be an array");
     }
 
-    // Delimiter übernehmen oder auf Default setzen
     this.delimiter = delimiter ?? DEFAULT_DELIMITER;
 
-    // Eine Kopie der Komponenten speichern (nicht das Originalarray direkt)
     this.components = [...other];
 
   }
 
-  /**
-   * Returns a human-readable representation of the Name instance using user-set control characters
-   * Control characters are not escaped (creating a human-readable string)
-   * Users can vary the delimiter character to be used
-   */
   public asString(delimiter: string = this.delimiter): string {
     return this.components.join(delimiter);
   }
 
-  /**
-   * Returns a machine-readable representation of Name instance using default control characters
-   * Machine-readable means that from a data string, a Name can be parsed back in
-   * The control characters in the data string are the default characters
-   */
   public asDataString(): string {
     const esc = ESCAPE_CHARACTER; // "\\"
-    const d = DEFAULT_DELIMITER; // "."
+    const d = DEFAULT_DELIMITER; 
     const escapeForData = (s: string) =>
       s
         .replaceAll(esc, esc + esc) // "\"  -> "\\"
