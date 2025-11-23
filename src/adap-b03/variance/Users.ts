@@ -10,6 +10,7 @@ export class User {
 
     public use(): void {
         // do something
+        console.log("User.use() called");
     }
 
 }
@@ -22,6 +23,7 @@ export class Moderator extends User {
 
     public moderate(): void {
         // do something
+        console.log("Moderator.moderate() called");
     }
 
 }
@@ -33,6 +35,7 @@ export class Administrator extends Moderator {
     }
 
     public administer(): void {
+        console.log("Administrator.administer() called");
         // do something
     }
 
