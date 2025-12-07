@@ -1,5 +1,8 @@
 import { Node } from "./Node";
 import { Directory } from "./Directory";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
+import { InvalidStateException } from "../common/InvalidStateException";
+import { MethodFailedException } from "../common/MethodFailedException";
 
 export class Link extends Node {
 
@@ -8,31 +11,62 @@ export class Link extends Node {
     constructor(bn: string, pn: Directory, tn?: Node) {
         super(bn, pn);
 
-        if (tn != undefined) {
-            this.targetNode = tn;
+        if (tn !== undefined) {
+            this.setTargetNode(tn);
         }
+
+        this.assertClassInvariants();
     }
 
     public getTargetNode(): Node | null {
+        this.assertClassInvariants();
         return this.targetNode;
     }
 
     public setTargetNode(target: Node): void {
+        IllegalArgumentException.assert(target != null, "setTargetNode: target must not be null");
         this.targetNode = target;
+        this.assertClassInvariants();
     }
 
     public getBaseName(): string {
-        const target = this.ensureTargetNode(this.targetNode);
-        return target.getBaseName();
+        this.assertClassInvariants();
+        try {
+            const t = this.ensureTargetNode();
+            return t.getBaseName();
+        } catch (e: any) {
+            throw new MethodFailedException("getBaseName failed via Link", e);
+        }
     }
 
     public rename(bn: string): void {
-        const target = this.ensureTargetNode(this.targetNode);
-        target.rename(bn);
+        IllegalArgumentException.assert(bn != null, "rename: bn must not be null");
+
+        this.assertClassInvariants();
+        try {
+            const t = this.ensureTargetNode();
+            t.rename(bn);
+        } catch (e: any) {
+            throw new MethodFailedException("rename through Link failed", e);
+        }
+
+        this.assertClassInvariants();
     }
 
-    protected ensureTargetNode(target: Node | null): Node {
-        const result: Node = this.targetNode as Node;
-        return result;
+    protected ensureTargetNode(): Node {
+        InvalidStateException.assert(
+            this.targetNode != null,
+            "Link invariant: targetNode must not be null"
+        );
+
+        return this.targetNode as Node;
+    }
+
+    protected assertClassInvariants(): void {
+        InvalidStateException.assert(
+            this.baseName != null,
+            "Link invariant: baseName must not be null"
+        );
+        // targetNode may be null until explicitly set
     }
 }
