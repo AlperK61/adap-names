@@ -1,6 +1,3 @@
-/**
- * Root class for exceptions in ADAP examples
- */
 export abstract class Exception extends Error {
 
     protected trigger: Exception | null = null;

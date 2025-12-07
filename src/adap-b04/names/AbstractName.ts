@@ -1,217 +1,229 @@
 import { DEFAULT_DELIMITER, ESCAPE_CHARACTER } from "../common/Printable";
+import { Name } from "./Name";
 import { IllegalArgumentException } from "../common/IllegalArgumentException";
 import { InvalidStateException } from "../common/InvalidStateException";
 import { MethodFailedException } from "../common/MethodFailedException";
-import { Name } from "./Name";
 
 export abstract class AbstractName implements Name {
 
     protected delimiter: string = DEFAULT_DELIMITER;
 
     constructor(delimiter: string = DEFAULT_DELIMITER) {
-        // Precondition: delimiter must not be null/undefined und muss genau 1 Zeichen sein
-        IllegalArgumentException.assert(delimiter != null, "delimiter must not be null or undefined");
-        IllegalArgumentException.assert(delimiter.length === 1, "delimiter must be a single character");
-
+        // Precondition: delimiter must be a single character
+        IllegalArgumentException.assert(
+            delimiter != null && delimiter.length === 1,
+            "delimiter must be a single character"
+        );
         this.delimiter = delimiter;
-
-        // Klasseninvariante nach Konstruktion
-        this.assertClassInvariant();
+        // KEINE Invariantenprüfung hier, da Subklassen im Konstruktor
+        // ihre eigenen Felder erst noch initialisieren müssen.
     }
 
     /**
-     * Subklassen müssen eine flache Kopie dieses Namens liefern.
+     * Klasseninvarianten prüfen.
+     * Wird von allen öffentlichen Methoden (außer ctor) verwendet.
      */
-    public abstract clone(): Name;
+    protected assertClassInvariants(): void {
+        InvalidStateException.assert(
+            this.delimiter != null && this.delimiter.length === 1,
+            "delimiter invariant violated"
+        );
 
-    /**
-     * Liefert eine menschenlesbare Darstellung des Namens.
-     * Es wird NICHT escaped; der Aufrufer kann das Delimiter-Zeichen wählen.
-     */
+        const n = this.getNoComponents();
+        InvalidStateException.assert(
+            n >= 0,
+            "number of components must not be negative"
+        );
+
+        for (let i = 0; i < n; i++) {
+            const c = this.getComponent(i);
+            InvalidStateException.assert(
+                c != null,
+                "name component must not be null"
+            );
+        }
+    }
+
+    public clone(): Name {
+        this.assertClassInvariants();
+
+        const Ctor = this.constructor as { new (delimiter?: string): Name };
+        const result = new Ctor(this.delimiter);
+
+        const n = this.getNoComponents();
+        for (let i = 0; i < n; i++) {
+            result.append(this.getComponent(i));
+        }
+
+        // Postcondition: geklonter Name ist gleich dem Original
+        MethodFailedException.assert(
+            result.isEqual(this),
+            "clone postcondition failed: cloned name differs from original"
+        );
+
+        return result;
+    }
+
     public asString(delimiter: string = this.delimiter): string {
-        // Preconditions
-        IllegalArgumentException.assert(delimiter != null, "delimiter must not be null or undefined");
-        IllegalArgumentException.assert(delimiter.length === 1, "delimiter must be a single character");
+        // Precondition: delimiter muss einzelnes Zeichen sein
+        IllegalArgumentException.assert(
+            delimiter != null && delimiter.length === 1,
+            "delimiter must be a single character"
+        );
 
-        const noComponents = this.getNoComponents();
+        this.assertClassInvariants();
 
-        if (noComponents === 0) {
-            // Leerer Name → leerer String
-            this.assertClassInvariant();
+        const n = this.getNoComponents();
+        if (n === 0) {
             return "";
         }
 
-        let result = "";
-        for (let i = 0; i < noComponents; i++) {
-            if (i > 0) {
-                result += delimiter;
-            }
-            result += this.getComponent(i);
+        const parts: string[] = [];
+        for (let i = 0; i < n; i++) {
+            // Human-readable: keine Escapes
+            parts.push(this.getComponent(i));
         }
 
-        // Postcondition: Anzahl Komponenten darf sich nicht ändern
+        const result = parts.join(delimiter);
+        // Triviale Postcondition: Ergebnis existiert
         MethodFailedException.assert(
-            noComponents === this.getNoComponents(),
-            "asString must not change the number of components"
+            result != null,
+            "asString postcondition failed"
         );
-
-        // Klasseninvariante
-        this.assertClassInvariant();
-
         return result;
     }
 
     public toString(): string {
+        // Machine-readable Darstellung als Default
         return this.asDataString();
     }
 
-    /**
-     * Liefert eine maschinenlesbare Darstellung des Namens.
-     * Verwendet DEFAULT_DELIMITER und ESCAPE_CHARACTER als Steuerzeichen.
-     */
     public asDataString(): string {
-        const noComponents = this.getNoComponents();
+        this.assertClassInvariants();
 
-        const escapedComponents: string[] = [];
-        for (let i = 0; i < noComponents; i++) {
-            escapedComponents.push(this.escapeComponentForDataString(this.getComponent(i)));
+        const n = this.getNoComponents();
+        if (n === 0) {
+            return "";
         }
 
-        const result = escapedComponents.join(DEFAULT_DELIMITER);
+        const parts: string[] = [];
 
-        // Postcondition: Struktur darf sich nicht ändern
+        for (let i = 0; i < n; i++) {
+            const component = this.getComponent(i);
+            let escaped = "";
+
+            for (const ch of component) {
+                // Machine-readable: Delimiter und Escape-Zeichen maskieren
+                if (ch === DEFAULT_DELIMITER || ch === ESCAPE_CHARACTER) {
+                    escaped += ESCAPE_CHARACTER;
+                }
+                escaped += ch;
+            }
+
+            parts.push(escaped);
+        }
+
+        const result = parts.join(DEFAULT_DELIMITER);
         MethodFailedException.assert(
-            noComponents === this.getNoComponents(),
-            "asDataString must not change the number of components"
+            result != null,
+            "asDataString postcondition failed"
         );
-
-        // Klasseninvariante
-        this.assertClassInvariant();
-
         return result;
     }
 
     public isEqual(other: Name): boolean {
-        // Precondition
-        IllegalArgumentException.assert(other != null, "other must not be null");
+        // Precondition: other darf nicht null sein
+        IllegalArgumentException.assert(
+            other != null,
+            "other must not be null"
+        );
 
-        const thisCount = this.getNoComponents();
-        const otherCount = other.getNoComponents();
+        this.assertClassInvariants();
 
-        if (thisCount !== otherCount) {
+        const n = this.getNoComponents();
+        if (n !== other.getNoComponents()) {
             return false;
         }
 
-        for (let i = 0; i < thisCount; i++) {
+        for (let i = 0; i < n; i++) {
             if (this.getComponent(i) !== other.getComponent(i)) {
                 return false;
             }
         }
 
-        // Klasseninvariante
-        this.assertClassInvariant();
-
         return true;
     }
 
-    /**
-     * Hashcode auf Basis der maschinenlesbaren Darstellung.
-     */
     public getHashCode(): number {
-        const data = this.asDataString();
+        this.assertClassInvariants();
 
-        // Einfacher String-Hash (ähnlich Java String.hashCode)
-        let hash = 0;
-        for (let i = 0; i < data.length; i++) {
-            hash = (31 * hash + data.charCodeAt(i)) | 0; // in 32-Bit int halten
+        let hash = 17;
+        const n = this.getNoComponents();
+
+        for (let i = 0; i < n; i++) {
+            const comp = this.getComponent(i);
+            for (let j = 0; j < comp.length; j++) {
+                hash = (hash * 31 + comp.charCodeAt(j)) | 0; // 32-bit int
+            }
         }
-
-        // Klasseninvariante
-        this.assertClassInvariant();
 
         return hash;
     }
 
     public isEmpty(): boolean {
-        const empty = this.getNoComponents() === 0;
+        this.assertClassInvariants();
 
-        // Klasseninvariante
-        this.assertClassInvariant();
+        const n = this.getNoComponents();
+        if (n === 0) {
+            return true;
+        }
 
-        return empty;
+        for (let i = 0; i < n; i++) {
+            if (this.getComponent(i).length > 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public getDelimiterCharacter(): string {
-        // Klasseninvariante muss für den gespeicherten Delimiter gelten
-        this.assertClassInvariant();
+        this.assertClassInvariants();
         return this.delimiter;
     }
 
-    // --- abstrakte Komponenten-API, von Subklassen zu implementieren ---
+    // Abstrakte Komponenten-API, von konkreten Namen-Klassen zu implementieren
+    abstract getNoComponents(): number;
 
-    public abstract getNoComponents(): number;
+    abstract getComponent(i: number): string;
+    abstract setComponent(i: number, c: string): void;
 
-    public abstract getComponent(i: number): string;
-    public abstract setComponent(i: number, c: string): void;
+    abstract insert(i: number, c: string): void;
+    abstract append(c: string): void;
+    abstract remove(i: number): void;
 
-    public abstract insert(i: number, c: string): void;
-    public abstract append(c: string): void;
-    public abstract remove(i: number): void;
-
-    /**
-     * Hängt alle Komponenten von other an diesen Namen an.
-     */
     public concat(other: Name): void {
         // Precondition
-        IllegalArgumentException.assert(other != null, "other must not be null");
+        IllegalArgumentException.assert(
+            other != null,
+            "other must not be null"
+        );
 
-        const oldCount = this.getNoComponents();
-        const otherCount = other.getNoComponents();
+        this.assertClassInvariants();
 
-        for (let i = 0; i < otherCount; i++) {
+        const oldNoComponents = this.getNoComponents();
+        const toAdd = other.getNoComponents();
+
+        for (let i = 0; i < toAdd; i++) {
             this.append(other.getComponent(i));
         }
 
-        // Postcondition: Anzahl der Komponenten muss sich korrekt erhöhen
+        this.assertClassInvariants();
+
+        // Postcondition: Komponentenanzahl um toAdd erhöht
         MethodFailedException.assert(
-            this.getNoComponents() === oldCount + otherCount,
-            "concat must increase number of components correctly"
-        );
-
-        // Klasseninvariante
-        this.assertClassInvariant();
-    }
-
-    // ----------------------------------------------------------------
-    // Hilfsfunktionen für Escaping und Invariante
-    // ----------------------------------------------------------------
-
-    /**
-     * Escaped eine Komponente für asDataString():
-     * DEFAULT_DELIMITER und ESCAPE_CHARACTER werden mit ESCAPE_CHARACTER versehen.
-     */
-    protected escapeComponentForDataString(component: string): string {
-        let result = "";
-        for (let i = 0; i < component.length; i++) {
-            const ch = component.charAt(i);
-            if (ch === ESCAPE_CHARACTER || ch === DEFAULT_DELIMITER) {
-                result += ESCAPE_CHARACTER;
-            }
-            result += ch;
-        }
-        return result;
-    }
-
-    /**
-     * Prüft die Klasseninvariante und wirft InvalidStateException bei Verstoß.
-     * Invariante von AbstractName:
-     *  - delimiter ist ein String der Länge 1 und nicht null
-     */
-    protected assertClassInvariant(): void {
-        InvalidStateException.assert(
-            this.delimiter != null && this.delimiter.length === 1,
-            "invalid delimiter state"
+            this.getNoComponents() === oldNoComponents + toAdd,
+            "concat postcondition failed: wrong number of components"
         );
     }
-
 }
