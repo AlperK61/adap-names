@@ -1,25 +1,16 @@
 import { Coordinate } from "./Coordinate";
 import { AbstractCoordinate } from "./AbstractCoordinate";
+import { IllegalArgumentException } from "../common/IllegalArgumentException";
 
 export class CartesianCoordinate extends AbstractCoordinate {
 
-    private x: number = 0;
-    private y: number = 0;
+    private readonly x: number;
+    private readonly y: number;
 
-    constructor(x?: number, y?: number) {
+    constructor(x: number = 0, y: number = 0) {
         super();
-
-        this.initialize(x, y);
-    }
-
-    protected initialize(x?: number, y?: number): void {
-        if (x != undefined) {
-            this.x = x;
-        }
-
-        if (y != undefined) {
-            this.y = y;
-        }
+        this.x = x;
+        this.y = y;
     }
 
     protected doCreate(x: number, y: number): Coordinate {
@@ -27,22 +18,23 @@ export class CartesianCoordinate extends AbstractCoordinate {
     }
 
     public asDataString(): string {
-        return this.doGetX() + '#' + this.doGetY();
+        return this.x + ";" + this.y;
     }
 
     public getOrigin(): Coordinate {
         return new CartesianCoordinate(0, 0);
     }
-   
+
+    // --- Cartesian getters/setters ---
     protected doGetX(): number {
         return this.x;
     }
-    
+
     protected doSetX(x: number): Coordinate {
         return new CartesianCoordinate(x, this.y);
     }
-    
-    public doGetY(): number {
+
+    protected doGetY(): number {
         return this.y;
     }
 
@@ -50,26 +42,32 @@ export class CartesianCoordinate extends AbstractCoordinate {
         return new CartesianCoordinate(this.x, y);
     }
 
+    // --- Polar getters/setters ---
     protected doGetR(): number {
-        return Math.hypot(this.doGetX(), this.doGetY());
+        return Math.hypot(this.x, this.y);
     }
 
     protected doSetR(r: number): Coordinate {
-        let phi: number = Math.atan2(this.doGetY(), this.doGetX());
-        let newX: number = r * Math.cos(phi);
-        let newY: number = r * Math.sin(phi);
-        return new CartesianCoordinate(newX, newY);
+        IllegalArgumentException.assert(this.isValidR(r));
+        const phi = this.doGetPhi();
+        return new CartesianCoordinate(
+            r * Math.cos(phi),
+            r * Math.sin(phi)
+        );
     }
 
     protected doGetPhi(): number {
-        return Math.atan2(this.doGetY(), this.doGetX());
+        let phi = Math.atan2(this.y, this.x);
+        if (phi < 0) phi += 2 * Math.PI;   // Wichtig!
+        return phi;
     }
 
     protected doSetPhi(phi: number): Coordinate {
-        let r: number = Math.hypot(this.doGetX(), this.doGetY());
-        let newX: number = r * Math.cos(phi);
-        let newY: number = r * Math.sin(phi);
-        return new CartesianCoordinate(newX, newY);
+        IllegalArgumentException.assert(this.isValidPhi(phi));
+        const r = this.doGetR();
+        return new CartesianCoordinate(
+            r * Math.cos(phi),
+            r * Math.sin(phi)
+        );
     }
-  
 }

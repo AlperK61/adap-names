@@ -1,17 +1,17 @@
 import { Exception } from "./Exception";
 
 /**
- * A MethodFailedException signals that the method failed to provide its service.
- * In other words, a postcondition failed.
+ * Signals a postcondition failure.
  */
 export class MethodFailedException extends Exception {
-  
-    public static assert(c: boolean, m: string = "method failed", t?: Exception): void {
-        if (!c) throw new MethodFailedException(m, t);
+
+    public static assert(condition: boolean, message = "method failed", trigger?: Exception): void {
+        if (!condition) {
+            throw new MethodFailedException(message, trigger);
+        }
     }
 
-    constructor(m: string, t?: Exception) {
-        super(m, t);
+    constructor(message: string, trigger?: Exception) {
+        super(message, trigger);
     }
-    
 }

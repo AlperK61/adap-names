@@ -4,9 +4,10 @@ import { Coordinate } from "./Coordinate";
 
 export abstract class AbstractCoordinate implements Coordinate {
 
-    public clone(): Coordinate {
-        return this.doCreate(this.doGetX(), this.doGetY());
-    }
+    public clone(): this {
+    return this.doCreate(this.doGetX(), this.doGetY()) as this;
+}
+
 
     protected abstract doCreate(x: number, y: number): Coordinate;
 

@@ -1,8 +1,6 @@
 export interface Cloneable {
-
     /**
-     * Returns shallow copy (clone) of this object
+     * Returns a shallow clone of this immutable value object.
      */
-    clone(): Object; // @todo Clarify use of Objects vs object
-
+    clone(): this;
 }

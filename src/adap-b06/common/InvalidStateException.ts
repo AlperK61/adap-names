@@ -1,17 +1,17 @@
 import { Exception } from "./Exception";
 
 /**
- * An InvalidStateException signals an invalid state of an object.
- * In other words, a class invariant failed.
+ * Signals an invalid object state (class invariant violated).
  */
 export class InvalidStateException extends Exception {
-  
-    public static assert(c: boolean, m: string = "invalid state", t?: Exception): void {
-        if (!c) throw new InvalidStateException(m, t);
+
+    public static assert(condition: boolean, message = "invalid state", trigger?: Exception): void {
+        if (!condition) {
+            throw new InvalidStateException(message, trigger);
+        }
     }
 
-    constructor(m: string, t?: Exception) {
-        super(m, t);
+    constructor(message: string, trigger?: Exception) {
+        super(message, trigger);
     }
-    
 }

@@ -1,14 +1,11 @@
 export interface Equality {
-
     /**
-     * Returns true if other object is of equal value to this one
-     * @param other Object to compare with
+     * Returns true if this value object is equal to the other object.
      */
-    isEqual(other: Object): boolean;
+    isEqual(other: unknown): boolean;
 
     /**
-     * Returns hashcode for this object, respecting equality contract
+     * Returns a hash code that respects the equality contract.
      */
     getHashCode(): number;
-    
 }
